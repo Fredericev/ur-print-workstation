@@ -244,8 +244,8 @@
     },
     {
       "path": "Software/build-windows-package.ps1",
-      "sha256": "14208bbda9e743895c14a3b02ef423c3c4a5f54f6278b8bf7fb52bc986817ff8",
-      "bytes": 11547,
+      "sha256": "800c0ee85a9cc1a462f65e4c87230abdd23fe611284c39b2326ca578614dc1db",
+      "bytes": 13133,
       "mode": "0o644"
     },
     {
@@ -796,8 +796,8 @@
     },
     {
       "path": "Software/tests/test_windows_package_builder.py",
-      "sha256": "4923465c8efdf06e7a1e08fcd5c95154788e7dc4f7efe4c8f3871e2c03d6778f",
-      "bytes": 4421,
+      "sha256": "5fedcdb0885aba3c87cc9ff53b1cfd822c990854d093e3d494b88401e6bf3948",
+      "bytes": 8484,
       "mode": "0o644"
     },
     {
@@ -1000,8 +1000,8 @@
     },
     {
       "path": "docs/RELEASE_0.14.2_ENGLISH.md",
-      "sha256": "d229dc6a20372c91103df1e5d5dcdece929d045df737837e5ba942ad65b20313",
-      "bytes": 3638,
+      "sha256": "3dff50776806def25c817c794359a1899ad4644bb639d12d968eb601db404506",
+      "bytes": 3769,
       "mode": "0o644"
     },
     {

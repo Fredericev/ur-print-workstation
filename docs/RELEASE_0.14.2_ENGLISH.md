@@ -1,11 +1,12 @@
 # UR Print Workstation 0.14.2 — English release
 
-Release date: 2026-11-16.
+Release date: 2026-11-17.
 
 This release publishes the complete English workstation on both Mac and Windows.
 It also corrects clean-source ZIP permission metadata on Windows and makes the
 regression fixtures independent of developer-local calibration and Unix-only
-process behavior. These developer/distribution fixes retain application behavior.
+process behavior. Windows-created package ZIPs also use portable forward-slash
+entry names for extraction and verification across operating systems. These developer/distribution fixes retain application behavior.
 It retains all 913 interface translation keys and the full application feature
 set. Existing profiles or browser storage that selected Chinese now use English.
 Interface labels, operation messages, number/date formatting, generated print

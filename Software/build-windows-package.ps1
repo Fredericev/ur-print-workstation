@@ -91,7 +91,7 @@ function Get-PayloadRelativePath {
 function Get-CanonicalHashLines {
     param([string]$Root, [string]$ExcludedRelativePath)
     $RelativeFiles = [System.Collections.Generic.List[string]]::new()
-    Get-ChildItem -LiteralPath $Root -File -Recurse | ForEach-Object {
+    Get-ChildItem -LiteralPath $Root -File -Recurse -Force | ForEach-Object {
         $Relative = Get-PayloadRelativePath $Root $_.FullName
         if ($Relative -ne $ExcludedRelativePath) { $RelativeFiles.Add($Relative) }
     }
@@ -171,6 +171,37 @@ function Copy-ProjectPayload {
     [IO.File]::WriteAllText((Join-Path $Destination "PAYLOAD_VERSION.txt"), "$AppVersion-$PayloadHash`n", [Text.Encoding]::ASCII)
 }
 
+function New-PortablePackageArchive {
+    param([string]$SourceDirectory, [string]$ArchivePath)
+    Add-Type -AssemblyName System.IO.Compression
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $SourceRoot = [IO.Path]::GetFullPath($SourceDirectory).TrimEnd([char[]]@('\', '/'))
+    $PackageDirectory = [IO.Path]::GetFileName($SourceRoot)
+    $RelativeFiles = [System.Collections.Generic.List[string]]::new()
+    Get-ChildItem -LiteralPath $SourceRoot -File -Recurse -Force | ForEach-Object {
+        $RelativeFiles.Add((Get-PayloadRelativePath $SourceRoot $_.FullName))
+    }
+    $RelativeFiles.Sort([StringComparer]::Ordinal)
+    $ArchiveStream = $null
+    $Zip = $null
+    try {
+        $ArchiveStream = [IO.File]::Open($ArchivePath, [IO.FileMode]::CreateNew, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
+        $Zip = [IO.Compression.ZipArchive]::new($ArchiveStream, [IO.Compression.ZipArchiveMode]::Create, $true)
+        foreach ($Relative in $RelativeFiles) {
+            # Windows PowerShell 5.1 Compress-Archive can write backslashes in
+            # ZIP entry names. Use explicit POSIX paths so Linux/macOS readers
+            # see the same package root, launcher, and complete shared payload.
+            [IO.Compression.ZipFileExtensions]::CreateEntryFromFile(
+                $Zip, (Join-Path $SourceRoot $Relative), "$PackageDirectory/$Relative",
+                [IO.Compression.CompressionLevel]::Optimal
+            ) | Out-Null
+        }
+    } finally {
+        if ($Zip) { $Zip.Dispose() }
+        if ($ArchiveStream) { $ArchiveStream.Dispose() }
+    }
+}
+
 function Build-Architecture {
     param(
         [string]$RuntimeIdentifier,
@@ -201,7 +232,7 @@ function Build-Architecture {
 
     $Archive = Join-Path $DistRoot "$PackageName.zip"
     Remove-Item $Archive, "$Archive.sha256" -Force -ErrorAction SilentlyContinue
-    Compress-Archive $StageDir $Archive -CompressionLevel Optimal
+    New-PortablePackageArchive $StageDir $Archive
     $ArchiveHash = (Get-FileHash $Archive -Algorithm SHA256).Hash.ToLowerInvariant()
     [IO.File]::WriteAllText("$Archive.sha256", "$ArchiveHash  $([IO.Path]::GetFileName($Archive))`n", [Text.Encoding]::ASCII)
     Write-Host "Created $Archive"
