@@ -157,15 +157,19 @@ class PrintheadRevisionTests(unittest.TestCase):
                 self.assertEqual(float(environment[f"HEIGHT_TRIAL_TCP_{axis.upper()}_M"]), tcp[axis])
 
     def test_first_installation_migrates_an_unmeasured_new_tool_preview(self):
-        template_path = Path(control_station.__file__).resolve().parent / "gcode_calibration.json"
-        template = json.loads(template_path.read_text())
+        # Clean source/packages intentionally exclude the developer's saved
+        # calibration. Construct the unmeasured legacy fixture locally.
+        template = {"source_sha256": "a" * 64, "calibration": gcode_calibration.default_calibration()}
+        template["calibration"]["confirmations"] = {
+            name: False for name in template["calibration"]["confirmations"]
+        }
         self.assertEqual(template["calibration"]["operation_mode"], "production_print")
         self.assertTrue(all(value is False for value in template["calibration"]["confirmations"].values()))
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             legacy, user_data = root / "bundled", root / "user"
             legacy.mkdir()
-            (legacy / "gcode_calibration.json").write_bytes(template_path.read_bytes())
+            (legacy / "gcode_calibration.json").write_text(json.dumps(template), encoding="utf-8")
             self.assertEqual(control_station.migrate_legacy_state(legacy, user_data), ["gcode_calibration.json"])
             backend = control_station.StationBackend(data_dir=user_data)
             content = b"G21\nG90\nM82\nG1 X0 Y0 Z1\nG1 X5 E1 F600\n"

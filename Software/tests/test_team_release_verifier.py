@@ -6,6 +6,7 @@ import importlib.util
 import io
 import json
 from pathlib import Path
+import stat
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -93,6 +94,26 @@ class TeamReleaseVerifierTests(unittest.TestCase):
             with redirect_stdout(io.StringIO()) as output:
                 self.assertEqual(verifier.main(), 0)
             self.assertIn("files match source ZIP and all platforms", output.getvalue())
+
+    def test_source_zip_permissions_match_manifest_when_host_chmod_has_no_effect(self) -> None:
+        # A Windows filesystem can ignore Unix permission changes. Exercise
+        # that behavior on every host rather than weakening metadata checks.
+        executable = self.root / "scripts/extra_runtime.py"
+        executable.chmod(0o755)
+        with patch.object(Path, "chmod", return_value=None):
+            package, archive_path = exporter.export_source(self.root, self.root / "Software/dist/mode-export")
+        with zipfile.ZipFile(archive_path) as archive:
+            manifest = json.loads(archive.read(f"{package.name}/SOURCE_MANIFEST.json"))
+            modes = {record["path"]: record["mode"] for record in manifest["files"]}
+            self.assertEqual(modes["README.md"], "0o644")
+            for relative, expected in modes.items():
+                info = archive.getinfo(f"{package.name}/{relative}")
+                self.assertEqual(info.create_system, 3)
+                self.assertTrue(stat.S_ISREG(info.external_attr >> 16))
+                self.assertEqual(oct((info.external_attr >> 16) & 0o777), expected)
+            manifest_info = archive.getinfo(f"{package.name}/SOURCE_MANIFEST.json")
+            self.assertEqual((manifest_info.external_attr >> 16) & 0o777, 0o644)
+        verifier.inspect_source(archive_path, package.name, self.root)
 
     def test_missing_file_in_every_package_is_caught_against_source_zip(self) -> None:
         self.all_packages({"scripts/extra_runtime.py"})

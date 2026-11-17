@@ -31,7 +31,7 @@ class ColimaNetworkRecoveryTests(unittest.TestCase):
         self.stack = ExitStack()
         self.addCleanup(self.stack.close)
         self.home = Path("/tmp/ur-colima-recovery-test-home")
-        self.endpoint = f"unix://{self.home}/.colima/default/docker.sock"
+        self.endpoint = "unix://" + str(self.home / ".colima/default/docker.sock")
         self.containers = NETWORK.CONTAINER + "\n"
         self.container_processes = "/usr/bin/supervisord\n/usr/bin/Xvfb :1\n"
         self.container_labels = "ur3e-real ros2\n"

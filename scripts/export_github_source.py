@@ -188,10 +188,20 @@ def export_source(root: Path, output_dir: Path) -> tuple[Path, Path]:
         manifest = {"schema": "ur-print-source-export-v1", "version": version, "files": manifest_files, "omitted_vendor_test_symlinks": omitted_links}
         (staged_package / "SOURCE_MANIFEST.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         staged_archive = staging / archive_path.name
+        archive_modes = {record["path"]: int(record["mode"], 8) for record in manifest_files}
+        archive_modes["SOURCE_MANIFEST.json"] = 0o644
         with zipfile.ZipFile(staged_archive, "x", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as archive:
             for path in sorted(staged_package.rglob("*")):
                 if path.is_file():
-                    archive.write(path, path.relative_to(staging).as_posix())
+                    # Windows chmod cannot represent Unix executable bits.
+                    # Bind ZIP permissions to the recorded manifest instead
+                    # of re-reading platform-dependent staging permissions.
+                    relative = path.relative_to(staged_package).as_posix()
+                    info = zipfile.ZipInfo.from_file(path, path.relative_to(staging).as_posix())
+                    info.create_system = 3
+                    info.external_attr = (stat.S_IFREG | archive_modes[relative]) << 16
+                    info.compress_type = zipfile.ZIP_DEFLATED
+                    archive.writestr(info, path.read_bytes())
         with zipfile.ZipFile(staged_archive) as archive:
             corrupt = archive.testzip()
             if corrupt is not None:

@@ -1,6 +1,6 @@
 {
   "schema": "ur-print-source-export-v1",
-  "version": "0.14.1",
+  "version": "0.14.2",
   "files": [
     {
       "path": ".gitattributes",
@@ -28,7 +28,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "d49b5724404c12d7fdc52232aa1224a5e59c6d6dc82a1a14dc731fc1d34903ca",
+      "sha256": "37d6d19c387e67491cf0601874fc9bd78ad838553a44bf63adb2dbd010606a5e",
       "bytes": 5813,
       "mode": "0o644"
     },
@@ -58,7 +58,7 @@
     },
     {
       "path": "Software/Mac/README-MAC.txt",
-      "sha256": "4dd6b0e3e9efcf6eac0d341f05ab48b81a13a2124ff73b4aa30e3030e6e1ea38",
+      "sha256": "883973c2c227072bde33f84de436d60331c1d2c4af08ba759500820e865274c4",
       "bytes": 1584,
       "mode": "0o644"
     },
@@ -82,7 +82,7 @@
     },
     {
       "path": "Software/Windows/README-WINDOWS.txt",
-      "sha256": "12e4990eec684cd3afd33c860aac6f029dc241f4f98ba56b6560a1701a981420",
+      "sha256": "921534f4b535e2778ea6f8e39de1feb23a4eed8bd31963b19b6e99cdbcf94c00",
       "bytes": 4396,
       "mode": "0o644"
     },
@@ -250,7 +250,7 @@
     },
     {
       "path": "Software/control_station.py",
-      "sha256": "2d25a3dcc3024f342452870da5b7e51a7a2ac0bf3c89658b1d4a429bb41371f1",
+      "sha256": "768c1cbe733bdb673370756553ecb224307153d2b2b0655b7b6abed3aa084414",
       "bytes": 268082,
       "mode": "0o755"
     },
@@ -298,7 +298,7 @@
     },
     {
       "path": "Software/native_app/Info.plist",
-      "sha256": "60c27627fdee4a7107d1ec191440d241e4313729904c47e95f6cb3eca04381e4",
+      "sha256": "f8787d1c114de4b2cb67ef91a0f78685074523bc2cd8a0834c3ecf351a4d3e8a",
       "bytes": 1184,
       "mode": "0o644"
     },
@@ -436,8 +436,8 @@
     },
     {
       "path": "Software/tests/test_colima_network_recovery.py",
-      "sha256": "57ac773c4b32c7ea94b6f627ca91612ba16892376eb3d02064c5d70dd859e611",
-      "bytes": 16257,
+      "sha256": "fdec47e4a3568e068902fd14bc0216d112990b5fe7aecc74699d4b14062add5a",
+      "bytes": 16266,
       "mode": "0o644"
     },
     {
@@ -598,8 +598,8 @@
     },
     {
       "path": "Software/tests/test_macos_ros_artifacts.py",
-      "sha256": "462f2eefd7f5b9a888e733b85e2ca50e5904f4fdf7502661d72d15305f5dbd95",
-      "bytes": 4763,
+      "sha256": "f9ca5f9dc3d5863c6ad4c915696d43a73ca179961b4bd1e14e5525d93360ab83",
+      "bytes": 4937,
       "mode": "0o644"
     },
     {
@@ -676,8 +676,8 @@
     },
     {
       "path": "Software/tests/test_printhead_revision.py",
-      "sha256": "7a044b9505c1b6f4e2d4a806147792fb937a3decf3d3ac3af24b813c11e0785a",
-      "bytes": 12435,
+      "sha256": "1b7bf4cee17920bd4e039875a25e2cb7e4653fbfd095b04a03e0bc3c5cee8e2b",
+      "bytes": 12681,
       "mode": "0o644"
     },
     {
@@ -766,8 +766,8 @@
     },
     {
       "path": "Software/tests/test_team_release_verifier.py",
-      "sha256": "fc88ee801c9260a55223bf79cf24928c82626b98d1e6fdfd4d4bc5cdd2aa29a4",
-      "bytes": 7678,
+      "sha256": "c36ff03d846eddd743b4044e5917f3b8719e44362e716d888cb5e6c33b9f2831",
+      "bytes": 9060,
       "mode": "0o644"
     },
     {
@@ -778,8 +778,8 @@
     },
     {
       "path": "Software/tests/test_ur_stop_proof.py",
-      "sha256": "8ef706bb3beebde45b344d8fd7892fc2da6a80fababca1bfea558e43df1ba687",
-      "bytes": 4639,
+      "sha256": "133555f8c5504e64ddbf36e713cb32ce541002df048c56d46b432f8c52ed068a",
+      "bytes": 4663,
       "mode": "0o644"
     },
     {
@@ -868,7 +868,7 @@
     },
     {
       "path": "Software/windows_app/README-WINDOWS.txt",
-      "sha256": "12e4990eec684cd3afd33c860aac6f029dc241f4f98ba56b6560a1701a981420",
+      "sha256": "921534f4b535e2778ea6f8e39de1feb23a4eed8bd31963b19b6e99cdbcf94c00",
       "bytes": 4396,
       "mode": "0o644"
     },
@@ -892,7 +892,7 @@
     },
     {
       "path": "Software/windows_app/URPrintWorkstation.Windows.csproj",
-      "sha256": "3a6b027cd75100783c3c31c84bc02289498c505e0bd0ac0e5944faf67fbe4d4b",
+      "sha256": "d53bb8e03828fdd5834b42b80b208b750f285762a390d65ae01ccac458c4ce84",
       "bytes": 2439,
       "mode": "0o644"
     },
@@ -999,6 +999,12 @@
       "mode": "0o644"
     },
     {
+      "path": "docs/RELEASE_0.14.2_ENGLISH.md",
+      "sha256": "d229dc6a20372c91103df1e5d5dcdece929d045df737837e5ba942ad65b20313",
+      "bytes": 3638,
+      "mode": "0o644"
+    },
+    {
       "path": "docs/ROS_STARTUP_REPAIR_2026-10-09.md",
       "sha256": "ac54ae3d1a2368ba65d7f5db81be26e557bf2e9a60e79f620791888e8e2b95bc",
       "bytes": 8779,
@@ -1102,8 +1108,8 @@
     },
     {
       "path": "scripts/export_github_source.py",
-      "sha256": "94bfb1c07b5ec458d59ccc3a698631958aab06db6d0c43b442769b2cb44249a4",
-      "bytes": 11187,
+      "sha256": "9706525a41c8f0d67f10ebd3d229eceb3382cab2e13c3679d421dba5f7870ecf",
+      "bytes": 11911,
       "mode": "0o644"
     },
     {

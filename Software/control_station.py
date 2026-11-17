@@ -218,7 +218,7 @@ SYNCHRONIZED_CANCEL_CLIENT = (
 )
 WINDOWS_RUNTIME = SOFTWARE_DIR / "windows_runtime.py"
 
-VERSION = "0.14.1"
+VERSION = "0.14.2"
 
 
 def migrate_legacy_state(legacy_dir: Path, destination: Path) -> list[str]:

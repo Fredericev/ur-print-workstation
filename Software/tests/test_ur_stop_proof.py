@@ -71,7 +71,7 @@ class FakeReadOnlyRtde:
                         values = (timestamp, *([0.2] * 6), *([self.velocity] * 6))
                         try:
                             connection.sendall(_packet(b"U", b"\x01" + struct.pack("!13d", *values)))
-                        except (BrokenPipeError, ConnectionResetError):
+                        except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
                             break
                         time.sleep(0.01)
         except BaseException as exc:

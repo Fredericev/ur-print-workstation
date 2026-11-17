@@ -23,7 +23,7 @@ Online operations use the existing guarded workcell workflow. A real motion
 test still requires the wired UR network, the configured container runtime,
 External Control, the physical emergency stop, and operator confirmation.
 
-Print Execution is included in version 0.14.1. Before the first real print,
+Print Execution is included in version 0.14.2. Before the first real print,
 restart the ROS stack, confirm the installed table/TCP/tool values, and rerun
 the exact file's online MoveIt review. A short, bounded motion acceptance test
 is required before printing. Timed synchronized execution requires a stable

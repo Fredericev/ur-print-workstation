@@ -26,7 +26,7 @@ For installing the same full workstation on teammates' computers and updating
 without losing calibration or stop evidence, see the
 [team deployment and update guide](docs/TEAM_DEPLOYMENT.md).
 The current internal package checksums and acceptance status are in the
-[0.14.1 English release note](docs/RELEASE_0.14.1_ENGLISH.md).
+[0.14.2 English release note](docs/RELEASE_0.14.2_ENGLISH.md).
 
 For a future external path-planning algorithm, see the documented
 [UR trajectory and timed extrusion import contract](docs/ur_extrusion_shared_timeline.md).

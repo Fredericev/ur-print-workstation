@@ -37,6 +37,7 @@ class MacOSGeneratedArtifactTests(unittest.TestCase):
 
         return metadata
 
+    @unittest.skipIf(os.name == "nt", "Exercises Darwin fcntl and O_NOFOLLOW locking")
     def test_real_directory_backup_preserves_outputs_and_operator_data(self):
         with tempfile.TemporaryDirectory() as directory:
             workspace = self.make_workspace(directory)
@@ -76,6 +77,7 @@ class MacOSGeneratedArtifactTests(unittest.TestCase):
                  mock.patch.object(recovery.os, "lstat", side_effect=self.flags_for({placeholder})):
                 self.assertIsNone(recovery.prepare_generated_artifacts(workspace))
 
+    @unittest.skipIf(os.name == "nt", "Exercises Darwin fcntl and O_NOFOLLOW locking")
     def test_failure_rolls_back_renamed_directories(self):
         with tempfile.TemporaryDirectory() as directory:
             workspace = self.make_workspace(directory)

@@ -5,14 +5,14 @@ Choose the package
 ------------------
 
 - Most Intel/AMD Windows computers:
-  UR-Print-Workstation-0.14.1-win-x64.zip
+  UR-Print-Workstation-0.14.2-win-x64.zip
 
 - Windows on ARM, including Apple-silicon Parallels:
-  UR-Print-Workstation-0.14.1-win-arm64.zip
+  UR-Print-Workstation-0.14.2-win-arm64.zip
 
 Open Settings > System > About > System type if you are unsure.
 
-This 0.14.1 package uses the same interface, backend, geometry, and ROS
+This 0.14.2 package uses the same interface, backend, geometry, and ROS
 source snapshot as the current Mac workstation. It includes native extruder
 control, paired timeline import, tabletop/Print Z calibration and height trials,
 3D path review, MoveIt planning, move-to-start, full print execution,
@@ -65,7 +65,7 @@ Offline G-code parsing, placement on the operator-entered tabletop Z with an
 independent Print Z, path conversion, and robot-path simulation
 run entirely inside this package.
 
-Print Execution is included in version 0.14.1. The native heated extruder must be configured and ready. Before the first real print,
+Print Execution is included in version 0.14.2. The native heated extruder must be configured and ready. Before the first real print,
 restart the packaged ROS stack, confirm the installed table/TCP/tool values, rerun
 the exact file's online MoveIt review, and perform the site's short, bounded
 motion acceptance test. Timed UR/Klipper execution requires a stable 100%
