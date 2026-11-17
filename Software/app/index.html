@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>UR Print Workstation</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <div id="app" class="app-shell" aria-live="polite">
+      <header class="topbar">
+        <div class="topbar-left">
+          <div class="brand">
+            <span class="material-symbols brand-symbol" aria-hidden="true">precision_manufacturing</span>
+            <div class="brand-name" data-i18n="productName">UR Print Workstation</div>
+          </div>
+          <div class="topbar-divider" aria-hidden="true"></div>
+          <div class="runbook-picker">
+            <button
+              id="runbookButton"
+              class="runbook-context"
+              type="button"
+              aria-haspopup="menu"
+              aria-expanded="false"
+              aria-controls="runbookMenu"
+            >
+              <span data-i18n="currentRunbook">Current runbook:</span>
+              <strong id="currentRunbookName">Connection</strong>
+              <span class="material-symbols small runbook-chevron" aria-hidden="true">expand_more</span>
+            </button>
+            <div id="runbookMenu" class="runbook-menu" role="menu" hidden></div>
+          </div>
+        </div>
+
+        <div class="topbar-actions">
+          <div id="demoBadge" class="demo-badge" hidden>DEMO MODE</div>
+          <div id="operatingModeSelector" class="operating-mode-selector" role="group" aria-label="Operating mode">
+            <span class="operating-mode-label" data-i18n="operatingMode">MODE</span>
+            <button id="offlineModeButton" class="operating-mode-option" type="button" data-mode="offline" aria-pressed="true">
+              <span class="material-symbols small" aria-hidden="true">shield_lock</span>
+              <span data-i18n="offlineMode">Offline</span>
+            </button>
+            <button id="onlineModeButton" class="operating-mode-option" type="button" data-mode="online" aria-pressed="false">
+              <span class="material-symbols small" aria-hidden="true">sensors</span>
+              <span data-i18n="onlineMode">Online</span>
+            </button>
+          </div>
+          <div class="topbar-meta date-meta">
+            <span class="material-symbols" aria-hidden="true">schedule</span>
+            <time id="currentDateTime"></time>
+          </div>
+          <div id="globalStatus" class="global-status">
+            <span class="status-dot neutral"></span>
+            <span data-i18n="checkingStatus">Checking status</span>
+          </div>
+          <button id="settingsButton" class="header-action" type="button" aria-label="Settings">
+            <span class="material-symbols" aria-hidden="true">settings</span>
+            <span data-i18n="settings">Settings</span>
+          </button>
+        </div>
+      </header>
+
+      <div class="workspace">
+        <aside class="runbook" aria-label="Setup runbook">
+          <div class="runbook-heading">
+            <span class="eyebrow" data-i18n="runbook">RUNBOOK</span>
+            <strong id="runbookSidebarName">Connection</strong>
+          </div>
+          <nav id="stepNavigation" class="step-navigation"></nav>
+          <div class="runbook-footnote">
+            <span class="status-dot safe"></span>
+            <span data-i18n="localOnly">Localhost only</span>
+          </div>
+        </aside>
+
+        <main id="mainContent" class="main-content" tabindex="-1"></main>
+      </div>
+
+      <footer class="safety-bar">
+        <div class="safety-left">
+          <span id="footerSafetyIcon" class="material-symbols footer-state-icon safe" aria-hidden="true">verified_user</span>
+          <strong id="footerSafetyText" data-i18n="estopWorkspace">Emergency stop ready · workspace clear</strong>
+        </div>
+        <div id="motionLockContainer" class="motion-lock">
+          <span class="material-symbols" aria-hidden="true">lock</span>
+          <span id="motionLockText" data-i18n="motionLocked">Real motion locked</span>
+        </div>
+        <button id="nextButton" class="button secondary" type="button" disabled>
+          <span data-i18n="continue">Continue</span>
+          <span class="material-symbols small" aria-hidden="true">arrow_forward_ios</span>
+        </button>
+      </footer>
+    </div>
+
+    <div id="settingsDialog" class="dialog-backdrop" hidden>
+      <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+        <div class="dialog-header">
+          <div>
+            <span class="eyebrow" data-i18n="configuration">CONFIGURATION</span>
+            <h2 id="settingsTitle" data-i18n="workstationSettings">Workstation settings</h2>
+          </div>
+          <button id="closeSettingsButton" class="icon-button" type="button" aria-label="Close"><span class="material-symbols" aria-hidden="true">close</span></button>
+        </div>
+        <form id="settingsForm" class="settings-form">
+          <label>
+            <span data-i18n="robotIp">Robot IP</span>
+            <input name="ur_robot_ip" inputmode="decimal" required>
+          </label>
+          <label>
+            <span data-i18n="rosPcIp">ROS PC IP (optional)</span>
+            <input name="ros_pc_ip" inputmode="decimal">
+          </label>
+          <label class="wide">
+            <span data-i18n="moonrakerUrl">Moonraker URL</span>
+            <input name="klipper_url" type="url" required>
+          </label>
+          <label>
+            <span data-i18n="manualStepper">Extruder</span>
+            <input name="manual_stepper" required>
+          </label>
+          <label>
+            <span data-i18n="updateRate">UR update rate (Hz)</span>
+            <input name="ur_update_rate" type="number" min="50" max="500" required>
+          </label>
+          <label>
+            <span data-i18n="axes">Cartesian axes</span>
+            <input name="axes" required>
+          </label>
+          <label>
+            <span data-i18n="distance">Distance per axis (m)</span>
+            <input name="distance_m" type="number" min="0.001" max="0.1" step="0.001" required>
+          </label>
+          <label>
+            <span data-i18n="jointSpeed">Max joint speed (rad/s)</span>
+            <input name="max_joint_speed_rad_s" type="number" min="0.005" max="0.05" step="0.005" required>
+          </label>
+          <label>
+            <span data-i18n="stepperMove">Stepper move</span>
+            <input name="stepper_move" type="number" min="-200" max="200" step="1" required>
+          </label>
+          <label>
+            <span data-i18n="stepperSpeed">Stepper speed</span>
+            <input name="stepper_speed" type="number" min="0.1" max="5" step="0.1" required>
+          </label>
+          <label>
+            <span data-i18n="stepperAccel">Extruder acceleration</span>
+            <input name="stepper_accel" type="number" min="20" max="20" step="0.1" required>
+          </label>
+          <div class="dialog-actions wide">
+            <button id="stopSystemButton" class="button danger-quiet" type="button" data-i18n="stopRos">Stop ROS system</button>
+            <span class="spacer"></span>
+            <button id="cancelSettingsButton" class="button quiet" type="button" data-i18n="cancel">Cancel</button>
+            <button class="button primary" type="submit" data-i18n="saveSettings">Save settings</button>
+          </div>
+        </form>
+      </section>
+    </div>
+
+    <div id="toastRegion" class="toast-region" aria-live="assertive"></div>
+    <script type="module" src="/path-review-3d.js"></script>
+    <script src="/app.js" defer></script>
+  </body>
+</html>

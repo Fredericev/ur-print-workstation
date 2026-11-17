@@ -1,0 +1,47 @@
+# A caller-generated identifier used for logs and status correlation.
+string operation_id
+
+# Native Klipper [extruder] / [extruder1] name. Legacy field name retained.
+string stepper
+
+# Target is filament mm; speed is mm/s and acceleration is mm/s^2.
+float64 target_position
+float64 speed
+float64 acceleration
+
+# Must be true for native extrusion. Send relative E = target - initial_position.
+bool set_position_before_move
+float64 initial_position
+
+# Optional legacy relative delay before Klipper starts the move.
+float64 start_delay_s
+
+# Requested ROS start time for best-effort software coordination. The bridge
+# converts remaining ROS time to G4 before HTTP dispatch; this is NOT an MCU
+# absolute-time schedule or a guarantee of physical start time. Zero keeps the
+# legacy relative-delay behavior. A missed pre/post-dispatch guard fails closed.
+int64 start_time_nanoseconds
+
+# Disable only the selected native extruder after the completion barrier succeeds.
+bool disable_after
+---
+bool success
+string error_code
+string message
+float64 estimated_duration_s
+
+# True once the bridge attempts the motion POST, including an uncertain/lost
+# acknowledgement. It means motion may have happened, not that it was observed.
+bool may_have_moved
+---
+uint8 PHASE_VALIDATING=0
+uint8 PHASE_CHECKING_READY=1
+# HTTP acknowledgement only; not an armed endpoint or physical-start feedback.
+uint8 PHASE_DISPATCHED=2
+uint8 PHASE_WAITING_FOR_COMPLETION=3
+uint8 PHASE_COMPLETED=4
+uint8 PHASE_FAILED=5
+uint8 PHASE_CANCELING=6
+
+uint8 phase
+string detail

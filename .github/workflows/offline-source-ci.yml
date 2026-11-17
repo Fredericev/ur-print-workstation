@@ -1,0 +1,165 @@
+name: Offline source CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-zip:
+    name: Export source ZIP from a clean checkout
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          submodules: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+      - name: Confirm clean checkout
+        shell: bash
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git status --short
+            exit 1
+          fi
+      - name: Export source without starting runtime services
+        shell: bash
+        run: python scripts/export_github_source.py --output-dir "${{ runner.temp }}/source-export"
+      - name: Keep source ZIP and checksum for offline test jobs
+        uses: actions/upload-artifact@v7
+        with:
+          name: source-zip-under-test
+          path: |
+            ${{ runner.temp }}/source-export/*.zip
+            ${{ runner.temp }}/source-export/*.zip.sha256
+          if-no-files-found: error
+          retention-days: 7
+
+  offline-tests:
+    name: Offline tests (${{ matrix.os }})
+    needs: source-zip
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - name: Download source ZIP under test
+        uses: actions/download-artifact@v8
+        with:
+          name: source-zip-under-test
+          path: source-artifact
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Verify checksum and manifest, then extract source
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path, PurePosixPath
+          import zipfile
+
+          downloads = Path('source-artifact')
+          archives = list(downloads.glob('*.zip'))
+          if len(archives) != 1:
+              raise SystemExit(f'Expected one source ZIP, found {len(archives)}')
+          archive = archives[0]
+          checksum = archive.with_name(archive.name + '.sha256')
+          expected_hash, expected_name = checksum.read_text(encoding='ascii').split()
+          if expected_name != archive.name:
+              raise SystemExit('Checksum names a different archive')
+          if hashlib.sha256(archive.read_bytes()).hexdigest() != expected_hash:
+              raise SystemExit('Source ZIP checksum mismatch')
+
+          with zipfile.ZipFile(archive) as source_zip:
+              corrupt = source_zip.testzip()
+              if corrupt:
+                  raise SystemExit(f'Corrupt ZIP entry: {corrupt}')
+              names = [entry.filename for entry in source_zip.infolist()]
+              prefix = archive.stem
+              if not names or any(
+                  PurePosixPath(name).parts[0] != prefix
+                  or '..' in PurePosixPath(name).parts
+                  for name in names
+              ):
+                  raise SystemExit('Unexpected source ZIP path')
+              source_zip.extractall('unpacked')
+
+          Path('unpacked', prefix).rename('source')
+          source = Path('source')
+          manifest = json.loads((source / 'SOURCE_MANIFEST.json').read_text(encoding='utf-8'))
+          if manifest.get('schema') != 'ur-print-source-export-v1':
+              raise SystemExit('Unexpected source manifest schema')
+          expected_files = {'SOURCE_MANIFEST.json'}
+          for item in manifest['files']:
+              relative = PurePosixPath(item['path'])
+              if relative.is_absolute() or '..' in relative.parts:
+                  raise SystemExit(f'Unsafe manifest path: {relative}')
+              path = source.joinpath(*relative.parts)
+              content = path.read_bytes()
+              if len(content) != item['bytes'] or hashlib.sha256(content).hexdigest() != item['sha256']:
+                  raise SystemExit(f'Manifest mismatch: {relative}')
+              if os.name != "nt":
+                  path.chmod(int(item['mode'], 8))
+              expected_files.add(relative.as_posix())
+          actual_files = {path.relative_to(source).as_posix() for path in source.rglob('*') if path.is_file()}
+          if actual_files != expected_files:
+              raise SystemExit('Source tree differs from manifest')
+          print(f'Verified {len(manifest["files"])} exported files and ZIP checksum.')
+          PY
+      - name: Verify English application and documentation
+        working-directory: source
+        shell: bash
+        run: python scripts/verify_english_release.py
+      - name: Python mock and offline tests
+        working-directory: source
+        shell: bash
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import platform
+          import unittest
+
+          all_modules = sorted(path.stem for path in Path('Software/tests').glob('test_*.py'))
+          system = platform.system()
+          # These two tests exercise a fake macOS installer through /bin/zsh.
+          mac_only = {'test_install_runtime', 'test_macos_app_builder'}
+          # These fixtures additionally require Unix shell, process-group, or symlink behavior.
+          windows_excluded = mac_only | {
+              'test_control_station',
+              'test_controller_overlay',
+              'test_github_source_export',
+              'test_moveit_calibration',
+              'test_native_python_compatibility',
+              'test_ros_startup_network',
+          }
+          excluded = windows_excluded if system == 'Windows' else mac_only if system == 'Linux' else set()
+          modules = [f'Software.tests.{name}' for name in all_modules if name not in excluded]
+          print(f'{system}: running {len(modules)} Python test modules from the extracted ZIP', flush=True)
+          suite = unittest.defaultTestLoader.loadTestsFromNames(modules)
+          result = unittest.TextTestRunner(verbosity=1).run(suite)
+          raise SystemExit(0 if result.wasSuccessful() else 1)
+          PY
+      - name: JavaScript syntax and offline UI tests
+        working-directory: source
+        shell: bash
+        run: |
+          node --check Software/app/app.js
+          node --check Software/app/path-review-3d.js
+          node --test Software/tests/test_*.mjs

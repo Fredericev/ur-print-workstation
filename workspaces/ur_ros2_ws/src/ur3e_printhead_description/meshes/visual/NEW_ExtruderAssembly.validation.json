@@ -1,0 +1,66 @@
+{
+  "purpose": "visual-only ROS/RViz mesh; no collision or TCP is defined here",
+  "coordinate_convention": "STEP/CAD origin and XYZ axes preserved; numeric coordinates are metres",
+  "source": {
+    "step_path": "Extruder/NEW_ExtruderAssembly.STEP",
+    "step_sha256": "b5437b6ae332ab96becbe1d9b9f9c0e9403e8ae7e1304792975053bfc05bfd4a",
+    "step_units": "millimeter",
+    "tessellation_path": "Extruder/placement-prototype/printhead-mesh.json",
+    "tessellation_sha256": "4335798b1a80d8393a5b459c7cc8481a52dba08268f0545b091fc92943269778",
+    "component_mesh_count": 121
+  },
+  "geometry": {
+    "vertices_with_per_face_duplication": 484068,
+    "source_triangles": 550870,
+    "output_triangles_after_removing_degenerate_faces": 550703,
+    "bounds_minimum_cad_m": [
+      -0.05504999999999992,
+      -0.14027500000000015,
+      -0.03325000000000001
+    ],
+    "bounds_maximum_cad_m": [
+      0.05504999999999992,
+      0.005000000000000011,
+      0.05934999999999997
+    ],
+    "size_xyz_m": [
+      0.11009999999999984,
+      0.14527500000000015,
+      0.09259999999999999
+    ],
+    "flange_reference": {
+      "status": "cad_candidate_not_physically_verified",
+      "mounting_plane_cad": "y = 0.005 m",
+      "mounting_plane_y_m": 0.005,
+      "assembly_side": "geometry extends toward CAD -Y",
+      "center_cad_m": [
+        5.551115123125783e-17,
+        0.005,
+        0.004999999999999999
+      ],
+      "outer_radius_m": 0.0325,
+      "outer_circle_sample_count": 98,
+      "outer_circle_max_residual_m": 1.3877787807814457e-17,
+      "derivation": "extents and outer-circle samples of Base mesh vertices on the candidate mounting plane"
+    }
+  },
+  "outputs": {
+    "NEW_ExtruderAssembly.stl": {
+      "format": "binary STL",
+      "units": "metre (STL is unitless; values are metres for ROS)",
+      "triangles": 550703,
+      "degenerate_source_triangles_removed": 167,
+      "surface_area_m2": 0.1564847688232433,
+      "bytes": 27535234,
+      "sha256": "6bdf12b5c565c139d2ff20c253d2f5ba8d56e6fa5f1a263e692f1019ed4eea9c"
+    },
+    "NEW_ExtruderAssembly.dae": {
+      "format": "COLLADA 1.4.1",
+      "units": "metre (asset unit meter=1)",
+      "vertices": 484068,
+      "triangles": 550703,
+      "bytes": 59177848,
+      "sha256": "2810275e06955b26c4157cf30583e86d5c8240635dc292690557fa993d9a5a76"
+    }
+  }
+}

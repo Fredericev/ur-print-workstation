@@ -1,0 +1,3 @@
+# Keep scripts and ROS source portable when a teammate clones on Windows.
+# Git still detects binary files and leaves their bytes unchanged.
+* text=auto eol=lf

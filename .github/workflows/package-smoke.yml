@@ -1,0 +1,255 @@
+name: Manual offline package smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_windows_arm64:
+        description: 'Also import the packaged backend on a Windows arm64 runner'
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  source-zip:
+    name: Export reviewed source from a clean checkout
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          submodules: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+      - name: Confirm clean checkout
+        shell: bash
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git status --short
+            exit 1
+          fi
+      - name: Verify English application and documentation
+        shell: bash
+        run: python scripts/verify_english_release.py
+      - name: Export source ZIP
+        shell: bash
+        run: python scripts/export_github_source.py --output-dir "${{ runner.temp }}/source-export"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: package-smoke-source
+          path: |
+            ${{ runner.temp }}/source-export/*.zip
+            ${{ runner.temp }}/source-export/*.zip.sha256
+          if-no-files-found: error
+          retention-days: 7
+
+  mac-arm64:
+    name: Build and inspect macOS arm64 package
+    needs: source-zip
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: package-smoke-source
+          path: source-artifact
+      - name: Verify and extract source ZIP
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$(uname -m)" == arm64 ]]
+          archives=(source-artifact/*-source.zip)
+          [[ ${#archives[@]} -eq 1 && -f "${archives[0]}" ]]
+          archive="${archives[0]}"
+          (cd source-artifact && shasum -a 256 -c "$(basename "$archive").sha256")
+          /usr/bin/unzip -tq "$archive"
+          /usr/bin/ditto -x -k "$archive" unpacked
+          /bin/mv "unpacked/$(basename "${archive%.zip}")" source
+          [[ -f source/Software/build-macos-portable-package.command ]]
+      - name: Run portable Mac package builder
+        working-directory: source
+        shell: bash
+        run: /bin/zsh Software/build-macos-portable-package.command
+      - name: Verify packaged native app and offline backend imports
+        working-directory: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          archives=(Software/dist/mac/*-mac-arm64.zip)
+          [[ ${#archives[@]} -eq 1 && -f "${archives[0]}" ]]
+          archive="${archives[0]}"
+          (cd Software/dist/mac && shasum -a 256 -c "$(basename "$archive").sha256")
+          /usr/bin/unzip -tq "$archive"
+          /usr/bin/ditto -x -k "$archive" "$RUNNER_TEMP/mac-package-smoke"
+          package="$RUNNER_TEMP/mac-package-smoke/$(basename "${archive%.zip}")"
+          app="$package/Software/Mac/UR Print Workstation.app"
+          executable="$app/Contents/MacOS/URPrintWorkstation"
+          [[ -x "$executable" ]]
+          /usr/bin/file "$executable" | /usr/bin/grep -q 'Mach-O.*arm64'
+          /usr/bin/codesign --verify --deep --strict "$app"
+          (cd "$package/Software" && PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 -c 'import control_station; import print_execution')
+      - uses: actions/upload-artifact@v7
+        with:
+          name: package-smoke-mac-arm64
+          path: |
+            source/Software/dist/mac/*.zip
+            source/Software/dist/mac/*.zip.sha256
+          if-no-files-found: error
+          retention-days: 7
+
+  windows-packages:
+    name: Build Windows x64 and arm64 with PowerShell 5.1
+    needs: source-zip
+    runs-on: windows-2025
+    timeout-minutes: 90
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: package-smoke-source
+          path: source-artifact
+      - name: Verify and extract source ZIP
+        shell: powershell
+        run: |
+          $archives = @(Get-ChildItem source-artifact -Filter '*-source.zip' -File)
+          if ($archives.Count -ne 1) { throw "Expected exactly one source ZIP." }
+          $archive = $archives[0]
+          $checksum = (Get-Content "$($archive.FullName).sha256" -Raw).Trim() -split '\s+'
+          if ($checksum.Count -ne 2 -or $checksum[1] -ne $archive.Name) { throw "Invalid source checksum file." }
+          if ((Get-FileHash $archive.FullName -Algorithm SHA256).Hash -ne $checksum[0]) { throw "Source ZIP checksum mismatch." }
+          Expand-Archive -LiteralPath $archive.FullName -DestinationPath unpacked
+          Move-Item -LiteralPath (Join-Path unpacked $archive.BaseName) -Destination source
+          if (-not (Test-Path 'source\Software\build-windows-package.ps1')) { throw "Windows package builder is missing." }
+      - name: Run Windows PowerShell 5.1 package builder
+        working-directory: source
+        shell: powershell
+        run: |
+          if ($env:PROCESSOR_ARCHITECTURE -ne 'AMD64') { throw "Expected x64 Windows runner." }
+          & .\Software\build-windows-package.ps1
+          if ($LASTEXITCODE -ne 0) { throw "Windows package builder failed." }
+      - name: Verify both ZIPs, native launchers, and x64 backend import
+        working-directory: source
+        shell: powershell
+        run: |
+          function Get-PeMachine([string]$Path) {
+            $bytes = [IO.File]::ReadAllBytes($Path)
+            if ($bytes.Length -lt 64 -or $bytes[0] -ne 77 -or $bytes[1] -ne 90) { throw "Invalid DOS header: $Path" }
+            $offset = [BitConverter]::ToInt32($bytes, 60)
+            if ($offset -lt 0 -or $offset + 6 -gt $bytes.Length) { throw "Invalid PE offset: $Path" }
+            if ($bytes[$offset] -ne 80 -or $bytes[$offset + 1] -ne 69 -or $bytes[$offset + 2] -ne 0 -or $bytes[$offset + 3] -ne 0) { throw "Invalid PE signature: $Path" }
+            return [BitConverter]::ToUInt16($bytes, $offset + 4)
+          }
+          $machines = @{ x64 = 0x8664; arm64 = 0xAA64 }
+          foreach ($architecture in @('x64', 'arm64')) {
+            $archives = @(Get-ChildItem Software\Windows -Filter "UR-Print-Workstation-*-win-$architecture.zip" -File)
+            if ($archives.Count -ne 1) { throw "Expected one $architecture package ZIP." }
+            $archive = $archives[0]
+            $checksum = (Get-Content "$($archive.FullName).sha256" -Raw).Trim() -split '\s+'
+            if ($checksum.Count -ne 2 -or $checksum[1] -ne $archive.Name) { throw "Invalid $architecture checksum file." }
+            if ((Get-FileHash $archive.FullName -Algorithm SHA256).Hash -ne $checksum[0]) { throw "$architecture ZIP checksum mismatch." }
+            $destination = Join-Path $env:RUNNER_TEMP "package-$architecture"
+            Expand-Archive -LiteralPath $archive.FullName -DestinationPath $destination
+            $package = Join-Path $destination $archive.BaseName
+            $launcher = Join-Path $package 'UR Print Workstation.exe'
+            $python = Join-Path $package 'python\python.exe'
+            $backend = Join-Path $package 'project\Software'
+            foreach ($required in @($launcher, $python, (Join-Path $package 'python\python313._pth'), (Join-Path $backend 'control_station.py'))) {
+              if (-not (Test-Path $required -PathType Leaf)) { throw "Missing packaged file: $required" }
+            }
+            if ((Get-PeMachine $launcher) -ne $machines[$architecture]) { throw "Wrong native launcher architecture: $architecture" }
+            if ((Get-PeMachine $python) -ne $machines[$architecture]) { throw "Wrong embedded Python architecture: $architecture" }
+            if ($architecture -eq 'x64') {
+              Push-Location $backend
+              try {
+                & $python -c 'import control_station; import print_execution'
+                if ($LASTEXITCODE -ne 0) { throw "Packaged x64 backend import failed." }
+              } finally { Pop-Location }
+            }
+          }
+      - uses: actions/upload-artifact@v7
+        with:
+          name: package-smoke-windows
+          path: |
+            source/Software/Windows/*.zip
+            source/Software/Windows/*.zip.sha256
+          if-no-files-found: error
+          retention-days: 7
+
+  windows-arm64:
+    name: Inspect arm64 package on Windows arm64
+    needs: windows-packages
+    if: ${{ inputs.run_windows_arm64 }}
+    runs-on: windows-11-arm
+    timeout-minutes: 20
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: package-smoke-windows
+          path: windows-artifact
+      - name: Verify native arm64 runtime and offline backend import
+        shell: powershell
+        run: |
+          if ($env:PROCESSOR_ARCHITECTURE -ne 'ARM64') { throw "Expected arm64 Windows runner." }
+          $archives = @(Get-ChildItem windows-artifact -Filter '*-win-arm64.zip' -File)
+          if ($archives.Count -ne 1) { throw "Expected one arm64 package ZIP." }
+          $archive = $archives[0]
+          $checksum = (Get-Content "$($archive.FullName).sha256" -Raw).Trim() -split '\s+'
+          if ($checksum.Count -ne 2 -or $checksum[1] -ne $archive.Name) { throw "Invalid arm64 checksum file." }
+          if ((Get-FileHash $archive.FullName -Algorithm SHA256).Hash -ne $checksum[0]) { throw "Arm64 ZIP checksum mismatch." }
+          $destination = Join-Path $env:RUNNER_TEMP 'arm64-package-smoke'
+          Expand-Archive -LiteralPath $archive.FullName -DestinationPath $destination
+          $package = Join-Path $destination $archive.BaseName
+          $launcher = Join-Path $package 'UR Print Workstation.exe'
+          $python = Join-Path $package 'python\python.exe'
+          $backend = Join-Path $package 'project\Software'
+          if (-not (Test-Path $launcher -PathType Leaf)) { throw "Arm64 launcher is missing." }
+          if (-not (Test-Path $python -PathType Leaf)) { throw "Arm64 embedded Python is missing." }
+          Push-Location $backend
+          try {
+            & $python -c 'import control_station; import print_execution'
+            if ($LASTEXITCODE -ne 0) { throw "Packaged arm64 backend import failed." }
+          } finally { Pop-Location }
+
+  verify-release-snapshot:
+    name: Compare all package ZIPs with source snapshot
+    needs: [source-zip, mac-arm64, windows-packages]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: package-smoke-source
+          path: source-artifact
+      - uses: actions/download-artifact@v8
+        with:
+          name: package-smoke-mac-arm64
+          path: mac-artifact
+      - uses: actions/download-artifact@v8
+        with:
+          name: package-smoke-windows
+          path: windows-artifact
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+      - name: Restore release ZIPs under exported source
+        shell: bash
+        run: |
+          set -euo pipefail
+          archives=(source-artifact/*-source.zip)
+          [[ ${#archives[@]} -eq 1 && -f "${archives[0]}" ]]
+          archive="${archives[0]}"
+          (cd source-artifact && sha256sum -c "$(basename "$archive").sha256")
+          unzip -tq "$archive"
+          unzip -q "$archive" -d unpacked
+          mv "unpacked/$(basename "${archive%.zip}")" source
+          mkdir -p source/Software/dist/source source/Software/dist/mac source/Software/Windows
+          cp source-artifact/*.zip* source/Software/dist/source/
+          cp mac-artifact/*.zip* source/Software/dist/mac/
+          cp windows-artifact/*.zip* source/Software/Windows/
+      - name: Run cross-platform source and release verifier
+        working-directory: source
+        shell: bash
+        run: PYTHONDONTWRITEBYTECODE=1 python scripts/verify_team_release.py

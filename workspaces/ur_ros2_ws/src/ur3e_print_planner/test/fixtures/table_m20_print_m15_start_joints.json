@@ -1,0 +1,19 @@
+{
+  "source": "runtime/path_review/17148d6d843e.json trajectory[0]",
+  "joint_names": [
+    "shoulder_pan_joint",
+    "shoulder_lift_joint",
+    "elbow_joint",
+    "wrist_1_joint",
+    "wrist_2_joint",
+    "wrist_3_joint"
+  ],
+  "positions_rad": [
+    0.022797424,
+    -2.255489871,
+    -1.445576426,
+    -1.009735263,
+    1.572380634,
+    1.596321340
+  ]
+}

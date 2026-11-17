@@ -1,0 +1,64 @@
+{
+  "purpose": "visual-only ROS/RViz mesh; no collision or TCP is defined here",
+  "coordinate_convention": "STEP/CAD origin and XYZ axes preserved; numeric coordinates are metres",
+  "source": {
+    "step_path": "Extruder/RExtruderDownAssembly.STEP",
+    "step_sha256": "9415d00618c0f07579867f997092db529d57c5af6e4fbe2b92193e5111860d9b",
+    "step_units": "millimeter",
+    "tessellation_path": "Extruder/placement-prototype/printhead-mesh.json",
+    "tessellation_sha256": "cadb2b8e2be74681ec6f61cf35ef5ab590cc63929e9d754cd70c4519db58e2d7",
+    "component_mesh_count": 21
+  },
+  "geometry": {
+    "vertices_with_per_face_duplication": 42700,
+    "source_triangles": 46164,
+    "output_triangles_after_removing_degenerate_faces": 46141,
+    "bounds_minimum_cad_m": [
+      -0.0537,
+      -0.149525,
+      -0.031
+    ],
+    "bounds_maximum_cad_m": [
+      0.0537,
+      0,
+      0.046
+    ],
+    "size_xyz_m": [
+      0.1074,
+      0.149525,
+      0.077
+    ],
+    "flange_reference": {
+      "mounting_plane_cad": "y = 0 m",
+      "assembly_side": "geometry extends toward CAD -Y",
+      "center_cad_m": [
+        0.0,
+        0.0,
+        0.004999999999999999
+      ],
+      "outer_radius_m": 0.0315,
+      "outer_circle_sample_count": 74,
+      "outer_circle_max_residual_m": 4.660368527198422e-08,
+      "derivation": "extents and outer-circle samples of Base mesh vertices on y=0 plane"
+    }
+  },
+  "outputs": {
+    "RExtruderDownAssembly.stl": {
+      "format": "binary STL",
+      "units": "metre (STL is unitless; values are metres for ROS)",
+      "triangles": 46141,
+      "degenerate_source_triangles_removed": 23,
+      "surface_area_m2": 0.08017858052071439,
+      "bytes": 2307134,
+      "sha256": "4dc445c0d32c7cff191caf26afc0cf8a525d8cb39ff995a7ad1342c3e67902c9"
+    },
+    "RExtruderDownAssembly.dae": {
+      "format": "COLLADA 1.4.1",
+      "units": "metre (asset unit meter=1)",
+      "vertices": 42700,
+      "triangles": 46141,
+      "bytes": 3570410,
+      "sha256": "4d3a4fce139261e5a527ac5031cf1e0e1cdd357b87923b8b9296e868312edbb3"
+    }
+  }
+}

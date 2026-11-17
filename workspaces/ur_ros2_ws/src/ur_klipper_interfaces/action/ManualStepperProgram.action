@@ -1,0 +1,46 @@
+# A caller-generated identifier used for logs, filenames, and status correlation.
+string operation_id
+
+# Native Klipper [extruder] / [extruder1] name. Legacy field name retained.
+string stepper
+
+# Relative filament distance (mm) and allotted duration (s) for each segment.
+# Arrays have equal, non-zero length. Each E-only G1 stops at its endpoints;
+# durations must include native acceleration/deceleration and <=50 mm splits.
+float64[] segment_units
+float64[] segment_durations_s
+
+# Fail-closed upper bound for every generated segment speed.
+float64 maximum_speed
+
+# One delay at the beginning of the uploaded program. This provides the common
+# software-coordinated start window; it is not a physical clock guarantee.
+float64 start_delay_s
+
+# Disable only the selected native extruder after the program completion barrier succeeds.
+bool disable_after
+---
+bool success
+string error_code
+string message
+float64 estimated_duration_s
+
+# True once the bridge attempts to start the uploaded program, including an
+# uncertain/lost acknowledgement. It means motion may have happened, not that
+# it was observed.
+bool may_have_moved
+---
+uint8 PHASE_VALIDATING=0
+uint8 PHASE_UPLOADING=1
+# The virtual-SD start request was acknowledged. program_epoch_ros_ns records
+# the bridge's best estimate of that acknowledgement epoch.
+uint8 PHASE_DISPATCHED=2
+uint8 PHASE_RUNNING=3
+uint8 PHASE_COMPLETED=4
+uint8 PHASE_FAILED=5
+uint8 PHASE_CANCELING=6
+
+uint8 phase
+string detail
+int64 program_epoch_ros_ns
+float64 progress

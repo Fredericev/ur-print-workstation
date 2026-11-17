@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "frame_id": "base_link",
+  "tabletop": {
+    "center_m": {
+      "x": -0.2925,
+      "y": 0.0
+    },
+    "dimensions_m": {
+      "x": 0.45,
+      "y": 0.54
+    },
+    "yaw_deg": 0.0,
+    "surface_z_m": -0.02,
+    "thickness_m": null,
+    "safety_margin_m": 0.01,
+    "measurement": {
+      "center": "confirmed_in_rviz",
+      "dimensions": "measured",
+      "yaw": "confirmed_in_rviz",
+      "surface_z": "operator_selected",
+      "thickness": "unknown"
+    }
+  },
+  "placement": {
+    "mode": "center_print_bounds",
+    "vertical_datum": "gcode_z0_on_tabletop"
+  }
+}

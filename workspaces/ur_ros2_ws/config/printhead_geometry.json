@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "source": "NEW_ExtruderAssembly.STEP",
+  "source_sha256": "b5437b6ae332ab96becbe1d9b9f9c0e9403e8ae7e1304792975053bfc05bfd4a",
+  "geometry_revision": "new-extruder-2026-10-07",
+  "mount_status": "cad_candidate_not_physically_verified",
+  "clocking_deg": 0,
+  "tool0_to_cad_origin_m": {
+    "x": 0.0,
+    "y": -0.005,
+    "z": 0.005
+  },
+  "tool0_to_cad_rpy_deg": {
+    "roll": -90.0,
+    "pitch": 0.0,
+    "yaw": 0.0
+  },
+  "flange_center_in_cad_m": {
+    "x": 0.0,
+    "y": 0.005,
+    "z": 0.005
+  },
+  "active_nozzle_name": "right",
+  "active_nozzle_in_cad_m": {
+    "x": 0.03255,
+    "y": -0.140275,
+    "z": 0.0394
+  },
+  "standby_nozzle_in_cad_m": {
+    "x": -0.03255,
+    "y": -0.140275,
+    "z": 0.0394
+  },
+  "tool0_to_nozzle_m": {
+    "x": 0.03255,
+    "y": 0.0344,
+    "z": 0.145275
+  },
+  "nozzle_state_status": "exported_pose_not_print_endpoint_verified",
+  "nozzle_collision_radius_m": 0.004,
+  "collision_envelope_tool0_m": {
+    "size": {
+      "x": 0.1101,
+      "y": 0.0926,
+      "z": 0.145275
+    },
+    "center": {
+      "x": 0.0,
+      "y": 0.00805,
+      "z": 0.0726375
+    }
+  },
+  "visual_mesh_uri": "package://ur3e_printhead_description/meshes/visual/NEW_ExtruderAssembly.stl",
+  "visual_mesh_web_path": "/assets/printhead/NEW_ExtruderAssembly.dae"
+}

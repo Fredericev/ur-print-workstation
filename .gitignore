@@ -1,0 +1,26 @@
+.DS_Store
+CONTEXT.md
+Extruder/
+Test gcode/
+.ursim/GUI/
+.ursim/.urcaps/
+workspaces/ur_ros2_ws/build/
+workspaces/ur_ros2_ws/install/
+workspaces/ur_ros2_ws/log/
+workspaces/ur_ros2_ws/runtime/
+workspaces/ur_ros2_ws/core
+workspaces/ur_ros2_ws/*.log
+workspaces/ur_ros2_ws/*.log.*
+workspaces/ur_ros2_ws/*.pid
+Software/runtime/
+Software/config.json
+Software/gcode_calibration.json
+Software/Mac/UR Print Workstation.app
+Software/windows_app/bin/
+Software/windows_app/obj/
+Software/dist/
+Software/Windows/*.zip
+Software/Windows/*.zip.sha256
+**/__pycache__/
+**/.pytest_cache/
+*.pyc

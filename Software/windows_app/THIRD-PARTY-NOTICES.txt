@@ -1,0 +1,18 @@
+UR Print Workstation includes the following redistributable components:
+
+Python 3.13.14
+Copyright © 2001-2026 Python Software Foundation.
+The Python license is included in python/LICENSE.txt in every package.
+https://docs.python.org/3/license.html
+
+Microsoft Edge WebView2 SDK
+Copyright © Microsoft Corporation.
+https://www.nuget.org/packages/Microsoft.Web.WebView2/1.0.4078.44
+
+.NET 10
+Copyright © Microsoft Corporation and contributors.
+https://github.com/dotnet/runtime/blob/main/LICENSE.TXT
+
+Three.js
+Copyright © 2010-2026 three.js authors.
+The license is included with the application web assets.

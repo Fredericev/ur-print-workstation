@@ -1,0 +1,53 @@
+name: ur3e-real
+
+services:
+  ros2:
+    build:
+      context: ./docker/ros2
+    container_name: ur3e-ros2-real
+    security_opt:
+      - seccomp=unconfined
+    cap_add:
+      - SYS_NICE
+    ulimits:
+      rtprio: 99
+      memlock:
+        soft: -1
+        hard: -1
+      core:
+        soft: 0
+        hard: 0
+    shm_size: "1gb"
+    environment:
+      USER: ubuntu
+      PASSWD: "${ROS_DESKTOP_PASSWORD:-ubuntu}"
+      TZ: America/Chicago
+      # Fast DDS shared-memory endpoints can survive an interrupted ROS client
+      # and leave newly restarted MoveIt services discoverable but unable to
+      # answer.  All workstation ROS traffic is local to this container, so a
+      # reliable UDP transport avoids that stale shared-memory failure mode.
+      FASTDDS_DEFAULT_PROFILES_FILE: /home/ubuntu/ur_ros2_ws/config/fastdds_udp_only.xml
+      FASTRTPS_DEFAULT_PROFILES_FILE: /home/ubuntu/ur_ros2_ws/config/fastdds_udp_only.xml
+    ports:
+      - "127.0.0.1:${ROS_DESKTOP_PORT:-6082}:80"
+      - "${UR_REVERSE_BIND_IP:-127.0.0.1}:50001:50001"
+      - "${UR_REVERSE_BIND_IP:-127.0.0.1}:50002:50002"
+      - "${UR_REVERSE_BIND_IP:-127.0.0.1}:50003:50003"
+      - "${UR_REVERSE_BIND_IP:-127.0.0.1}:50004:50004"
+    volumes:
+      - ./workspaces/ur_ros2_ws:/home/ubuntu/ur_ros2_ws
+      # macOS launch scripts select Library/Caches so iCloud cannot evict the
+      # generated outputs. Container paths stay stable for colcon's symlinks.
+      - type: bind
+        source: ${UR_ROS_BUILD_DIR:-./workspaces/ur_ros2_ws/build}
+        target: /home/ubuntu/ur_ros2_ws/build
+      - type: bind
+        source: ${UR_ROS_INSTALL_DIR:-./workspaces/ur_ros2_ws/install}
+        target: /home/ubuntu/ur_ros2_ws/install
+      # Offline RViz replay re-verifies the original G-code checksum inside
+      # the container. It is deliberately mounted read-only and never sent to
+      # either a robot or Klipper by the replay launch.
+      - "./Test gcode:/home/ubuntu/offline_preview_project/Test gcode:ro"
+      - ./workspaces/ur_ros2_ws/config/${UR_TYPE:-ur3e}_update_rate.yaml:/opt/ros/humble/share/ur_robot_driver/config/${UR_TYPE:-ur3e}_update_rate.yaml:ro
+    working_dir: /home/ubuntu/ur_ros2_ws
+    restart: unless-stopped
